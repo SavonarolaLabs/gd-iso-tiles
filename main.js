@@ -129,15 +129,13 @@ function drawTilesOnGrid() {
   }
 }
 
-// Function to update the textures of all tiles on the grid
 function updateTileTextures(tileIndex) {
-  const { tileTexture } = tiles[tileIndex]; // Get the tile data based on the current tile index
-  tileMeshes.forEach((tileMesh) => {
-    tileMesh.material.map = tileTexture; // Update the texture map of each tile
-    tileMesh.material.map.needsUpdate = true; // Force the material to update
+  tileMeshes.forEach((tileMesh, i) => {
+    const rowTileIndex = (tileIndex + Math.floor(i / MAP_SIZE)) % tiles.length;
+    tileMesh.material.map = tiles[rowTileIndex].tileTexture;
+    tileMesh.material.map.needsUpdate = true;
   });
 }
-
 // Initialize the scene
 async function init() {
   await loadAllTiles();
