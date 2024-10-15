@@ -34,6 +34,8 @@ let overlayTiles = [];
 let currentTileIndex = 0; // Start with the first tile in the list
 let currentOverlayIndex = 0; // Start with the first overlay in the list
 
+let basicTilesNames = ['ISO_Tile_Dirt_01', 'ISO_Tile_Water_Block', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Sand_03', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
+let basicTiles = [];
 // Function to load all tile textures and dimensions
 async function loadAllTiles() {
   const textureLoader = new TR.TextureLoader();
@@ -72,6 +74,7 @@ async function loadAllTiles() {
 
   // Separate base tiles and overlay tiles
   tiles = allTiles.filter((tile) => !tile.name.startsWith('ISO_Overlay'));
+  basicTiles = allTiles.filter((tile) => basicTilesNames.includes(tile.name));
   overlayTiles = allTiles.filter((tile) => tile.name.startsWith('ISO_Overlay') && !tile.name.includes('Roof'));
 
   return tiles;
@@ -128,12 +131,24 @@ async function drawTilesOnGrid() {
 
   // Create a 2D array to hold the tiles
   const tileGrid = [];
+  const { tileTexture: imperialTexture } = basicTiles[1];
+
+  const imperialMaterial = new TR.MeshBasicMaterial({
+    map: imperialTexture,
+    transparent: true,
+    side: TR.DoubleSide,
+    alphaTest: 0.5,
+    depthWrite: false, // Prevents depth buffer issues
+    depthTest: false,
+  });
+
+  const imperialTileMesh = new TR.Mesh(geometry, imperialMaterial.clone());
 
   // Populate the tile grid
   for (let row = 0; row < MAP_SIZE; row++) {
     tileGrid[row] = [];
     for (let col = 0; col < MAP_SIZE; col++) {
-      const tileMesh = new TR.Mesh(geometry, material.clone());
+      const tileMesh = new TR.Mesh(geometry, imperialMaterial.clone());
       const overlayMesh = new TR.Mesh(geometry, overlayMaterial.clone());
 
       // Calculate isometric positions
@@ -160,11 +175,14 @@ async function drawTilesOnGrid() {
       let col = sum - row;
       if (col >= 0 && col < MAP_SIZE) {
         const tileMeshesArray = tileGrid[row][col];
-        for (const tileMesh of tileMeshesArray) {
-          tileMesh.renderOrder = renderOrder++;
-          scene.add(tileMesh);
-          tileMeshes.push(tileMesh);
-        }
+        scene.add(tileMeshesArray[0]);
+        tileMeshes.push(tileMeshesArray[0]);
+
+        // for (const tileMesh of tileMeshesArray) {
+        //   tileMesh.renderOrder = renderOrder++;
+        //   scene.add(tileMesh);
+        //   tileMeshes.push(tileMesh);
+        // }
       }
     }
   }
@@ -181,7 +199,7 @@ function updateTileTextures(tileIndex, overlayIndex) {
       tileMesh.material.map = tiles[rowTileIndex].tileTexture;
     } else {
       // Overlay tile
-      tileMesh.material.map = overlayTiles[rowOverlayIndex].tileTexture;
+      //tileMesh.material.map = overlayTiles[rowOverlayIndex].tileTexture;
     }
     tileMesh.material.map.needsUpdate = true;
   });
