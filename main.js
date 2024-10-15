@@ -30,7 +30,9 @@ window.addEventListener('resize', () => {
 // Array to hold all loaded tile meshes and the tiles data
 let tileMeshes = [];
 let tiles = [];
+let overlayTiles = [];
 let currentTileIndex = 0; // Start with the first tile in the list
+let currentOverlayIndex = 0; // Start with the first overlay in the list
 
 // Function to load all tile textures and dimensions
 async function loadAllTiles() {
@@ -46,17 +48,32 @@ async function loadAllTiles() {
 
         const img = texture.image;
         if (img.width && img.height) {
-          resolve({ tileTexture: texture, tileWidth: img.width, tileHeight: img.height });
+          resolve({
+            name: key,
+            tileTexture: texture,
+            tileWidth: img.width,
+            tileHeight: img.height,
+          });
         } else {
           img.onload = () => {
-            resolve({ tileTexture: texture, tileWidth: img.width, tileHeight: img.height });
+            resolve({
+              name: key,
+              tileTexture: texture,
+              tileWidth: img.width,
+              tileHeight: img.height,
+            });
           };
         }
       });
     });
   });
 
-  tiles = await Promise.all(promises); // Set the global tiles variable
+  const allTiles = await Promise.all(promises); // Set the global tiles variable
+
+  // Separate base tiles and overlay tiles
+  tiles = allTiles.filter((tile) => !tile.name.startsWith('ISO_Overlay'));
+  overlayTiles = allTiles.filter((tile) => tile.name.startsWith('ISO_Overlay') && !tile.name.includes('Roof'));
+
   return tiles;
 }
 
@@ -64,26 +81,44 @@ async function loadAllTiles() {
 window.addEventListener('keydown', (event) => {
   if (event.key === '1') {
     currentTileIndex = (currentTileIndex - 1 + tiles.length) % tiles.length;
-    console.log('Switched to previous tile:', currentTileIndex);
-    updateTileTextures(currentTileIndex);
+    console.log('Switched to previous base tile:', currentTileIndex);
+    updateTileTextures(currentTileIndex, currentOverlayIndex);
   } else if (event.key === '2') {
     currentTileIndex = (currentTileIndex + 1) % tiles.length;
-    console.log('Switched to next tile:', currentTileIndex);
-    updateTileTextures(currentTileIndex);
+    console.log('Switched to next base tile:', currentTileIndex);
+    updateTileTextures(currentTileIndex, currentOverlayIndex);
+  } else if (event.key === '3') {
+    currentOverlayIndex = (currentOverlayIndex - 1 + overlayTiles.length) % overlayTiles.length;
+    console.log('Switched to previous overlay tile:', currentOverlayIndex);
+    updateTileTextures(currentTileIndex, currentOverlayIndex);
+  } else if (event.key === '4') {
+    currentOverlayIndex = (currentOverlayIndex + 1) % overlayTiles.length;
+    console.log('Switched to next overlay tile:', currentOverlayIndex);
+    updateTileTextures(currentTileIndex, currentOverlayIndex);
   }
 });
 
 // Function to create tiles in an isometric grid with correct rendering order
-function drawTilesOnGrid() {
+async function drawTilesOnGrid() {
   const tileScale = 1 / 64; // Assuming 128 pixels per unit
 
   // Use the current tile index to get the first tile's dimensions
   const { tileTexture, tileWidth, tileHeight } = tiles[currentTileIndex];
+  const { tileTexture: overlayTexture } = overlayTiles[currentOverlayIndex];
 
   // Create geometry and material for the tiles
   const geometry = new TR.PlaneGeometry(tileWidth * tileScale, tileHeight * tileScale);
   const material = new TR.MeshBasicMaterial({
     map: tileTexture,
+    transparent: true,
+    side: TR.DoubleSide,
+    alphaTest: 0.5,
+    depthWrite: false, // Prevents depth buffer issues
+    depthTest: false,
+  });
+
+  const overlayMaterial = new TR.MeshBasicMaterial({
+    map: overlayTexture,
     transparent: true,
     side: TR.DoubleSide,
     alphaTest: 0.5,
@@ -99,6 +134,7 @@ function drawTilesOnGrid() {
     tileGrid[row] = [];
     for (let col = 0; col < MAP_SIZE; col++) {
       const tileMesh = new TR.Mesh(geometry, material.clone());
+      const overlayMesh = new TR.Mesh(geometry, overlayMaterial.clone());
 
       // Calculate isometric positions
       const gap = 1;
@@ -106,11 +142,14 @@ function drawTilesOnGrid() {
       const z = (col + row) * (tileHeight * tileScale) * 0.25 * gap;
 
       tileMesh.position.set(x, 0, z);
+      overlayMesh.position.set(x, 0, z);
 
       // Rotate the tile to face upward
       tileMesh.rotation.x = -Math.PI / 2;
+      overlayMesh.rotation.x = -Math.PI / 2;
 
-      tileGrid[row][col] = tileMesh;
+      // Each tile position holds an array of tile meshes (base + overlay)
+      tileGrid[row][col] = [tileMesh, overlayMesh];
     }
   }
 
@@ -120,22 +159,34 @@ function drawTilesOnGrid() {
     for (let row = 0; row < MAP_SIZE; row++) {
       let col = sum - row;
       if (col >= 0 && col < MAP_SIZE) {
-        const tileMesh = tileGrid[row][col];
-        tileMesh.renderOrder = renderOrder++;
-        scene.add(tileMesh);
-        tileMeshes.push(tileMesh);
+        const tileMeshesArray = tileGrid[row][col];
+        for (const tileMesh of tileMeshesArray) {
+          tileMesh.renderOrder = renderOrder++;
+          scene.add(tileMesh);
+          tileMeshes.push(tileMesh);
+        }
       }
     }
   }
 }
 
-function updateTileTextures(tileIndex) {
+// Function to update the textures of all tiles on the grid
+function updateTileTextures(tileIndex, overlayIndex) {
   tileMeshes.forEach((tileMesh, i) => {
     const rowTileIndex = (tileIndex + Math.floor(i / MAP_SIZE)) % tiles.length;
-    tileMesh.material.map = tiles[rowTileIndex].tileTexture;
+    const rowOverlayIndex = (overlayIndex + Math.floor(i / MAP_SIZE)) % overlayTiles.length;
+
+    if (i % 2 === 0) {
+      // Base tile
+      tileMesh.material.map = tiles[rowTileIndex].tileTexture;
+    } else {
+      // Overlay tile
+      tileMesh.material.map = overlayTiles[rowOverlayIndex].tileTexture;
+    }
     tileMesh.material.map.needsUpdate = true;
   });
 }
+
 // Initialize the scene
 async function init() {
   await loadAllTiles();
