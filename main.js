@@ -33,9 +33,10 @@ let tileMeshes = [];
 let tiles = [];
 let overlayTiles = [];
 let currentTileIndex = 0; // Start with the first tile in the list
-let currentOverlayIndex = 0; // Start with the first overlay in the list
+let currentOverlayIndex = 53; // Start with the first overlay in the list
+// 53 - potential Road Overlay
 
-let basicTilesNames = ['ISO_Tile_Dirt_02', 'ISO_Tile_Water_Block', 'ISO_Tile_Brick_Stone_01_02', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
+let basicTilesNames = ['ISO_Tile_Dirt_02', 'ISO_Tile_Water_Block', 'ISO_Tile_Dirt_01_Grass_01_Green', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
 let specialWaterTilesNames = ['ISO_Tile_Water_Shore_1S_04'];
 let basicTiles = [];
 let specialWaterTiles = [];
@@ -254,7 +255,11 @@ async function drawTilesOnGrid() {
       overlayMesh.rotation.x = -Math.PI / 2;
 
       // Each tile position holds an array of tile meshes (base + overlay)
-      tileGrid[row][col] = [tileMesh, overlayMesh];
+      if (col == 13 || col == 8) {
+        tileGrid[row][col] = [tileMesh, overlayMesh];
+      } else {
+        tileGrid[row][col] = [tileMesh];
+      }
     }
   }
 
@@ -265,14 +270,15 @@ async function drawTilesOnGrid() {
       let col = sum - row;
       if (col >= 0 && col < MAP_SIZE) {
         const tileMeshesArray = tileGrid[row][col];
-        scene.add(tileMeshesArray[0]);
-        tileMeshes.push(tileMeshesArray[0]);
 
-        // for (const tileMesh of tileMeshesArray) {
-        //   tileMesh.renderOrder = renderOrder++;
-        //   scene.add(tileMesh);
-        //   tileMeshes.push(tileMesh);
-        // }
+        //scene.add(tileMeshesArray[0]);
+        //tileMeshes.push(tileMeshesArray[0]);
+
+        for (const tileMesh of tileMeshesArray) {
+          tileMesh.renderOrder = renderOrder++;
+          scene.add(tileMesh);
+          tileMeshes.push(tileMesh);
+        }
       }
     }
   }
