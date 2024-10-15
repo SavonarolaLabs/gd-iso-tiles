@@ -9,6 +9,7 @@ const scene = new TR.Scene();
 const renderer = new TR.WebGLRenderer({ antialias: true, alpha: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+renderer.outputColorSpace = TR.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 // Camera setup
@@ -34,8 +35,10 @@ let overlayTiles = [];
 let currentTileIndex = 0; // Start with the first tile in the list
 let currentOverlayIndex = 0; // Start with the first overlay in the list
 
-let basicTilesNames = ['ISO_Tile_Dirt_01', 'ISO_Tile_Water_Block', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Sand_03', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
+let basicTilesNames = ['ISO_Tile_Dirt_02', 'ISO_Tile_Water_Block', 'ISO_Tile_Brick_Stone_01_02', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
+let specialWaterTilesNames = ['ISO_Tile_Water_Shore_1S_04'];
 let basicTiles = [];
+let specialWaterTiles = [];
 // Function to load all tile textures and dimensions
 async function loadAllTiles() {
   const textureLoader = new TR.TextureLoader();
@@ -74,9 +77,9 @@ async function loadAllTiles() {
 
   // Separate base tiles and overlay tiles
   tiles = allTiles.filter((tile) => !tile.name.startsWith('ISO_Overlay'));
-  basicTiles = allTiles.filter((tile) => basicTilesNames.includes(tile.name));
+  basicTiles = basicTilesNames.map((t) => allTiles.find((tt) => tt.name == t));
   overlayTiles = allTiles.filter((tile) => tile.name.startsWith('ISO_Overlay') && !tile.name.includes('Roof'));
-
+  specialWaterTiles = specialWaterTilesNames.map((t) => allTiles.find((tt) => tt.name == t));
   return tiles;
 }
 
@@ -131,8 +134,63 @@ async function drawTilesOnGrid() {
 
   // Create a 2D array to hold the tiles
   const tileGrid = [];
-  const { tileTexture: imperialTexture } = basicTiles[1];
 
+  const imperialTexture = basicTiles[2].tileTexture;
+  const hellTexture = basicTiles[5].tileTexture;
+  const gnomesTexture = basicTiles[4].tileTexture;
+  const necroTexture = basicTiles[3].tileTexture;
+  const neutralTexture = basicTiles[0].tileTexture;
+  const waterTexture = basicTiles[1].tileTexture;
+  const waterShoreTexture = specialWaterTiles[0].tileTexture;
+
+  const waterShoreMaterial = new TR.MeshBasicMaterial({
+    map: waterShoreTexture,
+    transparent: true,
+    side: TR.DoubleSide,
+    alphaTest: 0.5,
+    depthWrite: false, // Prevents depth buffer issues
+    depthTest: false,
+  });
+  const waterMaterial = new TR.MeshBasicMaterial({
+    map: waterTexture,
+    transparent: true,
+    side: TR.DoubleSide,
+    alphaTest: 0.5,
+    depthWrite: false, // Prevents depth buffer issues
+    depthTest: false,
+  });
+  const neutralMaterial = new TR.MeshBasicMaterial({
+    map: neutralTexture,
+    transparent: true,
+    side: TR.DoubleSide,
+    alphaTest: 0.5,
+    depthWrite: false, // Prevents depth buffer issues
+    depthTest: false,
+  });
+  const necroMaterial = new TR.MeshBasicMaterial({
+    map: necroTexture,
+    transparent: true,
+    side: TR.DoubleSide,
+    alphaTest: 0.5,
+    depthWrite: false, // Prevents depth buffer issues
+    depthTest: false,
+  });
+  const gnomesMaterial = new TR.MeshBasicMaterial({
+    map: gnomesTexture,
+    transparent: true,
+    side: TR.DoubleSide,
+    alphaTest: 0.5,
+    depthWrite: false, // Prevents depth buffer issues
+    depthTest: false,
+  });
+  const hellMaterial = new TR.MeshBasicMaterial({
+    map: hellTexture,
+    transparent: true,
+    side: TR.DoubleSide,
+    alphaTest: 0.5,
+    depthWrite: false, // Prevents depth buffer issues
+    depthTest: false,
+  });
   const imperialMaterial = new TR.MeshBasicMaterial({
     map: imperialTexture,
     transparent: true,
@@ -142,14 +200,46 @@ async function drawTilesOnGrid() {
     depthTest: false,
   });
 
-  const imperialTileMesh = new TR.Mesh(geometry, imperialMaterial.clone());
-
   // Populate the tile grid
   for (let row = 0; row < MAP_SIZE; row++) {
     tileGrid[row] = [];
     for (let col = 0; col < MAP_SIZE; col++) {
-      const tileMesh = new TR.Mesh(geometry, imperialMaterial.clone());
-      const overlayMesh = new TR.Mesh(geometry, overlayMaterial.clone());
+      let tileMesh = new TR.Mesh(geometry, material);
+      let overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+
+      if (col < (3 * MAP_SIZE) / 4 || col >= MAP_SIZE / 4) {
+        if (row < MAP_SIZE / 4) {
+          tileMesh = new TR.Mesh(geometry, imperialMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        } else {
+          if (row < MAP_SIZE / 2) {
+            tileMesh = new TR.Mesh(geometry, gnomesMaterial);
+            overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+          } else {
+            tileMesh = new TR.Mesh(geometry, necroMaterial);
+            overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+          }
+          if (row > MAP_SIZE / 1.4) {
+            tileMesh = new TR.Mesh(geometry, hellMaterial);
+            overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+          }
+        }
+      }
+
+      if (col < MAP_SIZE / 4) {
+        tileMesh = new TR.Mesh(geometry, waterMaterial);
+        overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        if (col == 3) {
+          tileMesh = new TR.Mesh(geometry, waterShoreMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        }
+      } else {
+        if (col >= (3 * MAP_SIZE) / 4) {
+          tileMesh = new TR.Mesh(geometry, neutralMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        } else {
+        }
+      }
 
       // Calculate isometric positions
       const gap = 1;
