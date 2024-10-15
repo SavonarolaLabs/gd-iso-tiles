@@ -5,7 +5,8 @@ const MAP_SIZE = 16; // Size of the map grid
 
 // Scene and renderer setup
 const scene = new TR.Scene();
-const renderer = new TR.WebGLRenderer({ antialias: true, alpha: true });
+
+const renderer = new TR.WebGLRenderer({ antialias: true, alpha: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
@@ -26,8 +27,10 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Array to hold all loaded tile meshes
-const tileMeshes = [];
+// Array to hold all loaded tile meshes and the tiles data
+let tileMeshes = [];
+let tiles = [];
+let currentTileIndex = 0; // Start with the first tile in the list
 
 // Function to load all tile textures and dimensions
 async function loadAllTiles() {
@@ -53,15 +56,29 @@ async function loadAllTiles() {
     });
   });
 
-  return Promise.all(promises);
+  tiles = await Promise.all(promises); // Set the global tiles variable
+  return tiles;
 }
 
-// Function to create tiles in an isometric grid with correct rendering order
-function drawTilesOnGrid(tiles) {
-  const tileScale = 1 / 64; // Assuming 128 pixels per unit as per Unity
+// Event listener for switching tiles
+window.addEventListener('keydown', (event) => {
+  if (event.key === '1') {
+    currentTileIndex = (currentTileIndex - 1 + tiles.length) % tiles.length;
+    console.log('Switched to previous tile:', currentTileIndex);
+    updateTileTextures(currentTileIndex);
+  } else if (event.key === '2') {
+    currentTileIndex = (currentTileIndex + 1) % tiles.length;
+    console.log('Switched to next tile:', currentTileIndex);
+    updateTileTextures(currentTileIndex);
+  }
+});
 
-  const tileData = tiles[1]; // Select the first tile (you can randomize this if needed)
-  const { tileTexture, tileWidth, tileHeight } = tileData;
+// Function to create tiles in an isometric grid with correct rendering order
+function drawTilesOnGrid() {
+  const tileScale = 1 / 64; // Assuming 128 pixels per unit
+
+  // Use the current tile index to get the first tile's dimensions
+  const { tileTexture, tileWidth, tileHeight } = tiles[currentTileIndex];
 
   // Create geometry and material for the tiles
   const geometry = new TR.PlaneGeometry(tileWidth * tileScale, tileHeight * tileScale);
@@ -112,36 +129,22 @@ function drawTilesOnGrid(tiles) {
   }
 }
 
+// Function to update the textures of all tiles on the grid
+function updateTileTextures(tileIndex) {
+  const { tileTexture } = tiles[tileIndex]; // Get the tile data based on the current tile index
+  tileMeshes.forEach((tileMesh) => {
+    tileMesh.material.map = tileTexture; // Update the texture map of each tile
+    tileMesh.material.map.needsUpdate = true; // Force the material to update
+  });
+}
+
 // Initialize the scene
 async function init() {
-  const tiles = await loadAllTiles();
-  drawTilesOnGrid(tiles);
+  await loadAllTiles();
+  drawTilesOnGrid(); // Use loaded tiles
 }
 
 init();
-
-// Raycasting for interaction
-const raycaster = new TR.Raycaster();
-const mouse = new TR.Vector2();
-
-function onClick(event) {
-  mouse.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1);
-  raycaster.setFromCamera(mouse, camera);
-
-  const intersects = raycaster.intersectObjects(tileMeshes);
-  if (intersects.length) {
-    const { point } = intersects[0];
-    // Convert world coordinates back to grid coordinates
-    const tileScale = 1 / 128;
-    const tileWidthScaled = tileWidth * tileScale;
-    const tileHeightScaled = tileHeight * tileScale;
-
-    const col = Math.round((point.x / (tileWidthScaled * 0.5) + point.z / (tileHeightScaled * 0.25)) / 2);
-    const row = Math.round((point.z / (tileHeightScaled * 0.25) - point.x / (tileWidthScaled * 0.5)) / 2);
-    console.log('Tile clicked:', { col, row });
-  }
-}
-window.addEventListener('click', onClick);
 
 // Render loop
 renderer.setAnimationLoop(() => {
