@@ -15,13 +15,13 @@ document.body.appendChild(renderer.domElement);
 // Camera setup
 const aspectRatio = window.innerWidth / window.innerHeight;
 
-const cameraSize = MAP_SIZE / 3;
+const cameraSize = MAP_SIZE / 2;
 const camera = new TR.OrthographicCamera(-cameraSize * aspectRatio, cameraSize * aspectRatio, cameraSize, -cameraSize, 0.1, 1000);
 
 let deltaX = 0;
 let deltaZ = 0;
-camera.position.set(0 + deltaX, MAP_SIZE, MAP_SIZE / 2 + deltaZ);
-camera.lookAt(0 + deltaX, 0, MAP_SIZE / 2 + deltaZ);
+camera.position.set(0 + deltaX, MAP_SIZE, MAP_SIZE / 2 + deltaZ - 20);
+camera.lookAt(0 + deltaX, 0, MAP_SIZE / 2 + deltaZ - 20);
 
 const MAX_SIDE = MAP_SIZE;
 
@@ -88,6 +88,72 @@ async function loadAllTiles() {
   overlayTiles = allTiles.filter((tile) => tile.name.startsWith('ISO_Overlay') && !tile.name.includes('Roof'));
   specialWaterTiles = specialWaterTilesNames.map((t) => allTiles.find((tt) => tt.name == t));
   return tiles;
+}
+
+const textureImages = {
+  Empire_capital: 'assets/castles/doomed.png',
+  Demons_capital: 'assets/castles/empire.png',
+  Gnomes_capital: 'assets/castles/mountains.png',
+  Undead_capital: 'assets/castles/undead.png',
+};
+
+// Textures -> Material + Geometry -> Mesh
+async function loadTextures() {
+  const textureLoader = new TR.TextureLoader();
+
+  const promises = Object.keys(textureImages).map((key) => {
+    return new Promise((resolve) => {
+      textureLoader.load(textureImages[key], (texture) => {
+        texture.wrapS = TR.ClampToEdgeWrapping;
+        texture.wrapT = TR.ClampToEdgeWrapping;
+        texture.magFilter = TR.NearestFilter;
+        texture.minFilter = TR.NearestFilter;
+
+        const img = texture.image;
+        if (img.width && img.height) {
+          resolve({
+            name: key,
+            tileTexture: texture,
+            tileWidth: img.width,
+            tileHeight: img.height,
+          });
+        } else {
+          img.onload = () => {
+            resolve({
+              name: key,
+              tileTexture: texture,
+              tileWidth: img.width,
+              tileHeight: img.height,
+            });
+          };
+        }
+      });
+    });
+  });
+  const allTextures = await Promise.all(promises); // Set the global tiles variable
+  return allTextures;
+}
+
+const textures = await loadTextures();
+
+async function drawBuilding() {
+  const tileScale = (1 / 64) * 4; // Assuming 128 pixels per unit
+  const { tileTexture, tileWidth, tileHeight } = textures[0];
+  const textureGeometry = new TR.PlaneGeometry(tileWidth * tileScale, tileHeight * tileScale);
+  const textureMaterial = new TR.MeshBasicMaterial({
+    map: tileTexture,
+    transparent: true,
+    side: TR.DoubleSide,
+    alphaTest: 0.5,
+    depthWrite: false, // Prevents depth buffer issues
+    depthTest: false,
+  });
+
+  let tileMesh = new TR.Mesh(textureGeometry, textureMaterial);
+  tileMesh.rotation.x = -Math.PI / 2;
+  tileMesh.position.set(0, 10, 0);
+
+  scene.add(tileMesh);
 }
 
 // Event listener for switching tiles
@@ -335,6 +401,7 @@ function updateTileTextures(tileIndex, overlayIndex) {
 
 // Initialize the scene
 async function init() {
+  await drawBuilding();
   await loadAllTiles();
   drawTilesOnGrid(); // Use loaded tiles
 }
