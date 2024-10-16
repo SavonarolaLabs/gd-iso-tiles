@@ -33,7 +33,7 @@ let overlayTiles = [];
 let currentTileIndex = 0;
 let currentOverlayIndex = 46;
 
-const basicTilesNames = ['ISO_Tile_Dirt_02', 'ISO_Tile_Water_Block', 'ISO_Tile_Brick_Stone_01_02', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
+const basicTilesNames = ['ISO_Tile_Dirt_01_Grass_01', 'ISO_Tile_Water_Block', 'ISO_Tile_Brick_Stone_01_02', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
 const specialWaterTilesNames = ['ISO_Tile_Water_Shore_1S_04'];
 let basicTiles = [];
 let specialWaterTiles = [];
@@ -227,6 +227,47 @@ function drawTilesOnGrid() {
     }
   }
 }
+
+// mouse drag
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
+
+renderer.domElement.addEventListener('mousedown', (event) => {
+  if (event.button === 0) {
+    // Left mouse button
+    isDragging = true;
+    previousMousePosition = { x: event.clientX, y: event.clientY };
+  }
+});
+
+renderer.domElement.addEventListener('mousemove', (event) => {
+  if (isDragging) {
+    const deltaMove = {
+      x: event.clientX - previousMousePosition.x,
+      y: event.clientY - previousMousePosition.y,
+    };
+
+    const moveSpeed = 0.1;
+    deltaX -= deltaMove.x * moveSpeed;
+    deltaZ -= deltaMove.y * moveSpeed;
+
+    deltaX = Math.max(Math.min(deltaX, MAX_SIDE), -MAX_SIDE);
+    deltaZ = Math.max(Math.min(deltaZ, MAX_SIDE), -MAX_SIDE);
+
+    camera.position.set(deltaX, MAP_SIZE, deltaZ);
+    camera.lookAt(deltaX, 0, deltaZ);
+
+    previousMousePosition = { x: event.clientX, y: event.clientY };
+  }
+});
+
+renderer.domElement.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+renderer.domElement.addEventListener('mouseleave', () => {
+  isDragging = false;
+});
 
 async function init() {
   await loadAllTiles();
