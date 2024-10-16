@@ -273,40 +273,6 @@ async function drawTilesOnGrid() {
         }
       }
 
-      // if (col < (3 * MAP_SIZE) / 4 || col >= MAP_SIZE / 4) {
-      //   if (row < MAP_SIZE / 4) {
-      //     tileMesh = new TR.Mesh(geometry, imperialMaterial);
-      //     overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-      //   } else {
-      //     if (row < MAP_SIZE / 2) {
-      //       tileMesh = new TR.Mesh(geometry, gnomesMaterial);
-      //       overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-      //     } else {
-      //       tileMesh = new TR.Mesh(geometry, necroMaterial);
-      //       overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-      //     }
-      //     if (row > MAP_SIZE / 1.4) {
-      //       tileMesh = new TR.Mesh(geometry, hellMaterial);
-      //       overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-      //     }
-      //   }
-      // }
-
-      // if (col < MAP_SIZE / 4) {
-      //   tileMesh = new TR.Mesh(geometry, waterMaterial);
-      //   overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-      //   if (col == 3) {
-      //     tileMesh = new TR.Mesh(geometry, waterShoreMaterial);
-      //     overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-      //   }
-      // } else {
-      //   if (col >= (3 * MAP_SIZE) / 4) {
-      //     tileMesh = new TR.Mesh(geometry, neutralMaterial);
-      //     overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-      //   } else {
-      //   }
-      // }
-
       // Calculate isometric positions
       const gap = 1;
       const x = (col - row) * (tileWidth * tileScale) * 0.5 * gap;
