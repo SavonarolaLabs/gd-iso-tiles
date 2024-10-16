@@ -15,13 +15,13 @@ document.body.appendChild(renderer.domElement);
 // Camera setup
 const aspectRatio = window.innerWidth / window.innerHeight;
 
-const cameraSize = MAP_SIZE / 2;
+const cameraSize = MAP_SIZE / 3;
 const camera = new TR.OrthographicCamera(-cameraSize * aspectRatio, cameraSize * aspectRatio, cameraSize, -cameraSize, 0.1, 1000);
 
 let deltaX = 0;
 let deltaZ = 0;
-camera.position.set(0 + deltaX, MAP_SIZE, 0 + deltaZ);
-camera.lookAt(0 + deltaX, 0, 0 + deltaZ);
+camera.position.set(0 + deltaX, MAP_SIZE, MAP_SIZE / 2 + deltaZ);
+camera.lookAt(0 + deltaX, 0, MAP_SIZE / 2 + deltaZ);
 
 const MAX_SIDE = MAP_SIZE;
 
