@@ -11,7 +11,7 @@ renderer.outputColorSpace = TR.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const aspectRatio = window.innerWidth / window.innerHeight;
-const cameraSize = MAP_SIZE / 2;
+const cameraSize = MAP_SIZE / 3;
 const camera = new TR.OrthographicCamera(-cameraSize * aspectRatio, cameraSize * aspectRatio, cameraSize, -cameraSize, 0.1, 1000);
 
 let deltaX = 0;
@@ -33,7 +33,7 @@ let overlayTiles = [];
 let currentTileIndex = 0;
 let currentOverlayIndex = 46;
 
-const basicTilesNames = ['ISO_Tile_Dirt_01_Grass_01', 'ISO_Tile_Water_Block', 'ISO_Tile_Brick_Stone_01_02', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
+const basicTilesNames = ['ISO_Tile_Dirt_01_Grass_01', 'ISO_Tile_Water_Block', 'ISO_Tile_Dirt_01_Grass_01_Green', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
 const specialWaterTilesNames = ['ISO_Tile_Water_Shore_1S_04'];
 let basicTiles = [];
 let specialWaterTiles = [];
