@@ -42,7 +42,7 @@ let currentTileIndex = 0; // Start with the first tile in the list
 let currentOverlayIndex = 46; // Start with the first overlay in the list
 // 53 - potential Road Overlay
 
-let basicTilesNames = ['ISO_Tile_Dirt_02', 'ISO_Tile_Water_Block', 'ISO_Tile_Dirt_01_Grass_01', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
+let basicTilesNames = ['ISO_Tile_Dirt_02', 'ISO_Tile_Water_Block', 'ISO_Tile_Brick_Stone_01_02', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
 let specialWaterTilesNames = ['ISO_Tile_Water_Shore_1S_04'];
 let basicTiles = [];
 let specialWaterTiles = [];
@@ -139,6 +139,7 @@ const textures = await loadTextures();
 async function drawBuilding() {
   const tileScale = (1 / 64 / 2 / 5) * 8; // Assuming 128 pixels per unit
   const stepFromEdge = 8;
+  const capitalSize = 8;
 
   {
     const { tileTexture: EmpireCapitalTexture, tileWidth: EmpireCapitalWidth, tileHeight: EmpireCapitalHeight } = textures[1];
@@ -171,7 +172,7 @@ async function drawBuilding() {
     });
     let DemonsCapitalMesh = new TR.Mesh(DemonsCapitalGeometry, DemonsCapitalMaterial);
     DemonsCapitalMesh.rotation.x = -Math.PI / 2;
-    DemonsCapitalMesh.position.set(0, 0, MAP_SIZE - stepFromEdge);
+    DemonsCapitalMesh.position.set(0, 0, MAP_SIZE - stepFromEdge + capitalSize);
     DemonsCapitalMesh.renderOrder = MAP_SIZE * MAP_SIZE;
     scene.add(DemonsCapitalMesh);
   }
@@ -190,7 +191,7 @@ async function drawBuilding() {
 
     let GnomesCapitalMesh = new TR.Mesh(GnomesCapitalGeometry, GnomesCapitalMaterial);
     GnomesCapitalMesh.rotation.x = -Math.PI / 2;
-    GnomesCapitalMesh.position.set(MAP_SIZE - stepFromEdge, 0, MAP_SIZE / 2);
+    GnomesCapitalMesh.position.set(MAP_SIZE - stepFromEdge - capitalSize, 0, MAP_SIZE / 2 + capitalSize / 2);
     GnomesCapitalMesh.renderOrder = MAP_SIZE * MAP_SIZE;
     scene.add(GnomesCapitalMesh);
   }
@@ -207,7 +208,7 @@ async function drawBuilding() {
     });
     let UndeadCapitalMesh = new TR.Mesh(UndeadCapitalGeometry, UndeadCapitalMaterial);
     UndeadCapitalMesh.rotation.x = -Math.PI / 2;
-    UndeadCapitalMesh.position.set(-MAP_SIZE + stepFromEdge, 0, MAP_SIZE / 2);
+    UndeadCapitalMesh.position.set(-MAP_SIZE + stepFromEdge + capitalSize, 0, MAP_SIZE / 2 + capitalSize / 2);
     UndeadCapitalMesh.renderOrder = MAP_SIZE * MAP_SIZE;
     scene.add(UndeadCapitalMesh);
   }
