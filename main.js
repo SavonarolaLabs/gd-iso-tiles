@@ -14,10 +14,16 @@ document.body.appendChild(renderer.domElement);
 
 // Camera setup
 const aspectRatio = window.innerWidth / window.innerHeight;
-const cameraSize = MAP_SIZE;
+
+const cameraSize = MAP_SIZE / 2;
 const camera = new TR.OrthographicCamera(-cameraSize * aspectRatio, cameraSize * aspectRatio, cameraSize, -cameraSize, 0.1, 1000);
-camera.position.set(0, MAP_SIZE * 2, MAP_SIZE * 2);
-camera.lookAt(0, 0, 0);
+
+let deltaX = 0;
+let deltaZ = 0;
+camera.position.set(0 + deltaX, MAP_SIZE, 0 + deltaZ);
+camera.lookAt(0 + deltaX, 0, 0 + deltaZ);
+
+const MAX_SIDE = MAP_SIZE;
 
 // Handle window resize
 window.addEventListener('resize', () => {
@@ -86,23 +92,18 @@ async function loadAllTiles() {
 
 // Event listener for switching tiles
 window.addEventListener('keydown', (event) => {
-  if (event.key === '1') {
-    currentTileIndex = (currentTileIndex - 1 + tiles.length) % tiles.length;
-    console.log('Switched to previous base tile:', currentTileIndex);
-    updateTileTextures(currentTileIndex, currentOverlayIndex);
-  } else if (event.key === '2') {
-    currentTileIndex = (currentTileIndex + 1) % tiles.length;
-    console.log('Switched to next base tile:', currentTileIndex);
-    updateTileTextures(currentTileIndex, currentOverlayIndex);
-  } else if (event.key === '3') {
-    currentOverlayIndex = (currentOverlayIndex - 1 + overlayTiles.length) % overlayTiles.length;
-    console.log('Switched to previous overlay tile:', currentOverlayIndex);
-    updateTileTextures(currentTileIndex, currentOverlayIndex);
-  } else if (event.key === '4') {
-    currentOverlayIndex = (currentOverlayIndex + 1) % overlayTiles.length;
-    console.log('Switched to next overlay tile:', currentOverlayIndex);
-    updateTileTextures(currentTileIndex, currentOverlayIndex);
+  const mapStep = 3;
+  if (event.key === 'w') {
+    deltaZ = Math.max(deltaZ - mapStep, -MAX_SIDE);
+  } else if (event.key === 's') {
+    deltaZ = Math.min(deltaZ + mapStep, MAX_SIDE);
+  } else if (event.key === 'd') {
+    deltaX = Math.min(deltaX + mapStep, MAX_SIDE);
+  } else if (event.key === 'a') {
+    deltaX = Math.max(deltaX - mapStep, -MAX_SIDE);
   }
+  camera.position.set(deltaX, MAP_SIZE, deltaZ);
+  camera.lookAt(deltaX, 0, deltaZ);
 });
 
 // Function to create tiles in an isometric grid with correct rendering order
