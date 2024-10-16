@@ -137,23 +137,80 @@ async function loadTextures() {
 const textures = await loadTextures();
 
 async function drawBuilding() {
-  const tileScale = (1 / 64) * 4; // Assuming 128 pixels per unit
-  const { tileTexture, tileWidth, tileHeight } = textures[0];
-  const textureGeometry = new TR.PlaneGeometry(tileWidth * tileScale, tileHeight * tileScale);
-  const textureMaterial = new TR.MeshBasicMaterial({
-    map: tileTexture,
-    transparent: true,
-    side: TR.DoubleSide,
-    alphaTest: 0.5,
-    depthWrite: false, // Prevents depth buffer issues
-    depthTest: false,
-  });
+  const tileScale = (1 / 64 / 2 / 5) * 8; // Assuming 128 pixels per unit
+  const stepFromEdge = 8;
 
-  let tileMesh = new TR.Mesh(textureGeometry, textureMaterial);
-  tileMesh.rotation.x = -Math.PI / 2;
-  tileMesh.position.set(0, 10, 0);
+  {
+    const { tileTexture: EmpireCapitalTexture, tileWidth: EmpireCapitalWidth, tileHeight: EmpireCapitalHeight } = textures[1];
+    const EmpireCapitalGeometry = new TR.PlaneGeometry(EmpireCapitalWidth * tileScale, EmpireCapitalHeight * tileScale);
+    const EmpireCapitalMaterial = new TR.MeshBasicMaterial({
+      map: EmpireCapitalTexture,
+      transparent: true,
+      side: TR.DoubleSide,
+      alphaTest: 0.5,
+      depthWrite: false, // Prevents depth buffer issues
+      depthTest: false,
+    });
+    let EmpireCapitalMesh = new TR.Mesh(EmpireCapitalGeometry, EmpireCapitalMaterial);
+    EmpireCapitalMesh.rotation.x = -Math.PI / 2;
+    EmpireCapitalMesh.position.set(0, 0, stepFromEdge);
+    EmpireCapitalMesh.renderOrder = MAP_SIZE * MAP_SIZE;
+    scene.add(EmpireCapitalMesh);
+  }
 
-  scene.add(tileMesh);
+  {
+    const { tileTexture: DemonsCapitalTexture, tileWidth: DemonsCapitalWidth, tileHeight: DemonsCapitalHeight } = textures[0];
+    const DemonsCapitalGeometry = new TR.PlaneGeometry(DemonsCapitalWidth * tileScale, DemonsCapitalHeight * tileScale);
+    const DemonsCapitalMaterial = new TR.MeshBasicMaterial({
+      map: DemonsCapitalTexture,
+      transparent: true,
+      side: TR.DoubleSide,
+      alphaTest: 0.5,
+      depthWrite: false, // Prevents depth buffer issues
+      depthTest: false,
+    });
+    let DemonsCapitalMesh = new TR.Mesh(DemonsCapitalGeometry, DemonsCapitalMaterial);
+    DemonsCapitalMesh.rotation.x = -Math.PI / 2;
+    DemonsCapitalMesh.position.set(0, 0, MAP_SIZE - stepFromEdge);
+    DemonsCapitalMesh.renderOrder = MAP_SIZE * MAP_SIZE;
+    scene.add(DemonsCapitalMesh);
+  }
+
+  {
+    const { tileTexture: GnomesCapitalTexture, tileWidth: GnomesCapitalWidth, tileHeight: GnomesCapitalHeight } = textures[2];
+    const GnomesCapitalGeometry = new TR.PlaneGeometry(GnomesCapitalWidth * tileScale, GnomesCapitalHeight * tileScale);
+    const GnomesCapitalMaterial = new TR.MeshBasicMaterial({
+      map: GnomesCapitalTexture,
+      transparent: true,
+      side: TR.DoubleSide,
+      alphaTest: 0.5,
+      depthWrite: false, // Prevents depth buffer issues
+      depthTest: false,
+    });
+
+    let GnomesCapitalMesh = new TR.Mesh(GnomesCapitalGeometry, GnomesCapitalMaterial);
+    GnomesCapitalMesh.rotation.x = -Math.PI / 2;
+    GnomesCapitalMesh.position.set(MAP_SIZE - stepFromEdge, 0, MAP_SIZE / 2);
+    GnomesCapitalMesh.renderOrder = MAP_SIZE * MAP_SIZE;
+    scene.add(GnomesCapitalMesh);
+  }
+  {
+    const { tileTexture: UndeadCapitalTexture, tileWidth: UndeadCapitalWidth, tileHeight: UndeadCapitalHeight } = textures[3];
+    const UndeadCapitalGeometry = new TR.PlaneGeometry(UndeadCapitalWidth * tileScale, UndeadCapitalHeight * tileScale);
+    const UndeadCapitalMaterial = new TR.MeshBasicMaterial({
+      map: UndeadCapitalTexture,
+      transparent: true,
+      side: TR.DoubleSide,
+      alphaTest: 0.5,
+      depthWrite: false, // Prevents depth buffer issues
+      depthTest: false,
+    });
+    let UndeadCapitalMesh = new TR.Mesh(UndeadCapitalGeometry, UndeadCapitalMaterial);
+    UndeadCapitalMesh.rotation.x = -Math.PI / 2;
+    UndeadCapitalMesh.position.set(-MAP_SIZE + stepFromEdge, 0, MAP_SIZE / 2);
+    UndeadCapitalMesh.renderOrder = MAP_SIZE * MAP_SIZE;
+    scene.add(UndeadCapitalMesh);
+  }
 }
 
 // Event listener for switching tiles
