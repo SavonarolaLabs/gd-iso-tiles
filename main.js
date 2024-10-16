@@ -411,11 +411,7 @@ async function drawTilesOnGrid() {
       overlayMesh.rotation.x = -Math.PI / 2;
 
       // Each tile position holds an array of tile meshes (base + overlay)
-      if (col == 4) {
-        tileGrid[row][col] = [tileMesh, overlayMesh];
-      } else {
-        tileGrid[row][col] = [tileMesh];
-      }
+      tileGrid[row][col] = [tileMesh];
     }
   }
 
