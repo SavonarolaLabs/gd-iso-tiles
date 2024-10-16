@@ -1,7 +1,7 @@
 import * as TR from 'three';
 import tileImages from './tileImports.js';
 
-const MAP_SIZE = 16; // Size of the map grid
+const MAP_SIZE = 64; // Size of the map grid
 
 // Scene and renderer setup
 const scene = new TR.Scene();
@@ -36,7 +36,7 @@ let currentTileIndex = 0; // Start with the first tile in the list
 let currentOverlayIndex = 46; // Start with the first overlay in the list
 // 53 - potential Road Overlay
 
-let basicTilesNames = ['ISO_Tile_Dirt_02', 'ISO_Tile_Water_Block', 'ISO_Tile_Dirt_01_Grass_01_Green', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
+let basicTilesNames = ['ISO_Tile_Dirt_02', 'ISO_Tile_Water_Block', 'ISO_Tile_Dirt_01_Grass_01', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
 let specialWaterTilesNames = ['ISO_Tile_Water_Shore_1S_04'];
 let basicTiles = [];
 let specialWaterTiles = [];
@@ -202,45 +202,110 @@ async function drawTilesOnGrid() {
   });
 
   // Populate the tile grid
+
   for (let row = 0; row < MAP_SIZE; row++) {
     tileGrid[row] = [];
     for (let col = 0; col < MAP_SIZE; col++) {
       let tileMesh = new TR.Mesh(geometry, material);
       let overlayMesh = new TR.Mesh(geometry, overlayMaterial);
 
-      if (col < (3 * MAP_SIZE) / 4 || col >= MAP_SIZE / 4) {
-        if (row < MAP_SIZE / 4) {
+      if (col < MAP_SIZE / 2) {
+        if (row < MAP_SIZE / 2) {
           tileMesh = new TR.Mesh(geometry, imperialMaterial);
           overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-        } else {
-          if (row < MAP_SIZE / 2) {
-            tileMesh = new TR.Mesh(geometry, gnomesMaterial);
-            overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-          } else {
-            tileMesh = new TR.Mesh(geometry, necroMaterial);
-            overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-          }
-          if (row > MAP_SIZE / 1.4) {
-            tileMesh = new TR.Mesh(geometry, hellMaterial);
-            overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-          }
         }
       }
 
-      if (col < MAP_SIZE / 4) {
-        tileMesh = new TR.Mesh(geometry, waterMaterial);
-        overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-        if (col == 3) {
-          tileMesh = new TR.Mesh(geometry, waterShoreMaterial);
+      if (col >= MAP_SIZE / 2) {
+        if (row < MAP_SIZE / 2) {
+          tileMesh = new TR.Mesh(geometry, gnomesMaterial);
           overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-        }
-      } else {
-        if (col >= (3 * MAP_SIZE) / 4) {
-          tileMesh = new TR.Mesh(geometry, neutralMaterial);
-          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
-        } else {
         }
       }
+
+      if (col < MAP_SIZE / 2) {
+        if (row >= MAP_SIZE / 2) {
+          tileMesh = new TR.Mesh(geometry, necroMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        }
+      }
+
+      if (col >= MAP_SIZE / 2) {
+        if (row >= MAP_SIZE / 2) {
+          tileMesh = new TR.Mesh(geometry, hellMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        }
+      }
+
+      if (col >= (2 * MAP_SIZE) / 6 && col < (4 * MAP_SIZE) / 6) {
+        if (row >= (2 * MAP_SIZE) / 6 && row < (4 * MAP_SIZE) / 6) {
+          tileMesh = new TR.Mesh(geometry, neutralMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        }
+      }
+
+      const waterSize = 3;
+      if (col >= (2 * MAP_SIZE) / 6 - waterSize && col < (2 * MAP_SIZE) / 6 + waterSize) {
+        if (row >= (2 * MAP_SIZE) / 6 - waterSize && row < (2 * MAP_SIZE) / 6 + waterSize) {
+          tileMesh = new TR.Mesh(geometry, waterMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        }
+      }
+
+      if (col >= (4 * MAP_SIZE) / 6 - waterSize && col < (4 * MAP_SIZE) / 6 + waterSize) {
+        if (row >= (4 * MAP_SIZE) / 6 - waterSize && row < (4 * MAP_SIZE) / 6 + waterSize) {
+          tileMesh = new TR.Mesh(geometry, waterMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        }
+      }
+
+      if (col >= (2 * MAP_SIZE) / 6 - waterSize && col < (2 * MAP_SIZE) / 6 + waterSize) {
+        if (row >= (4 * MAP_SIZE) / 6 - waterSize && row < (4 * MAP_SIZE) / 6 + waterSize) {
+          tileMesh = new TR.Mesh(geometry, waterMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        }
+      }
+
+      if (col >= (4 * MAP_SIZE) / 6 - waterSize && col < (4 * MAP_SIZE) / 6 + waterSize) {
+        if (row >= (2 * MAP_SIZE) / 6 - waterSize && row < (2 * MAP_SIZE) / 6 + waterSize) {
+          tileMesh = new TR.Mesh(geometry, waterMaterial);
+          overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+        }
+      }
+
+      // if (col < (3 * MAP_SIZE) / 4 || col >= MAP_SIZE / 4) {
+      //   if (row < MAP_SIZE / 4) {
+      //     tileMesh = new TR.Mesh(geometry, imperialMaterial);
+      //     overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+      //   } else {
+      //     if (row < MAP_SIZE / 2) {
+      //       tileMesh = new TR.Mesh(geometry, gnomesMaterial);
+      //       overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+      //     } else {
+      //       tileMesh = new TR.Mesh(geometry, necroMaterial);
+      //       overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+      //     }
+      //     if (row > MAP_SIZE / 1.4) {
+      //       tileMesh = new TR.Mesh(geometry, hellMaterial);
+      //       overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+      //     }
+      //   }
+      // }
+
+      // if (col < MAP_SIZE / 4) {
+      //   tileMesh = new TR.Mesh(geometry, waterMaterial);
+      //   overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+      //   if (col == 3) {
+      //     tileMesh = new TR.Mesh(geometry, waterShoreMaterial);
+      //     overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+      //   }
+      // } else {
+      //   if (col >= (3 * MAP_SIZE) / 4) {
+      //     tileMesh = new TR.Mesh(geometry, neutralMaterial);
+      //     overlayMesh = new TR.Mesh(geometry, overlayMaterial);
+      //   } else {
+      //   }
+      // }
 
       // Calculate isometric positions
       const gap = 1;
