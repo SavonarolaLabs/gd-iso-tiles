@@ -14,10 +14,13 @@ const aspectRatio = window.innerWidth / window.innerHeight;
 const cameraSize = MAP_SIZE / 3;
 const camera = new TR.OrthographicCamera(-cameraSize * aspectRatio, cameraSize * aspectRatio, cameraSize, -cameraSize, 0.1, 1000);
 
-let deltaX = 0;
-let deltaZ = 0;
-camera.position.set(deltaX, MAP_SIZE, MAP_SIZE / 2 + deltaZ - 20);
-camera.lookAt(deltaX, 0, MAP_SIZE / 2 + deltaZ - 20);
+// Retrieve camera position from localStorage if it exists
+let savedCameraPosition = JSON.parse(localStorage.getItem('cameraPosition')) || { deltaX: 0, deltaZ: 0 };
+let deltaX = savedCameraPosition.deltaX;
+let deltaZ = savedCameraPosition.deltaZ;
+
+camera.position.set(deltaX, MAP_SIZE, deltaZ);
+camera.lookAt(deltaX, 0, deltaZ);
 
 window.addEventListener('resize', () => {
   const newAspectRatio = window.innerWidth / window.innerHeight;
@@ -33,7 +36,19 @@ let overlayTiles = [];
 let currentTileIndex = 0;
 let currentOverlayIndex = 46;
 
-const basicTilesNames = ['ISO_Tile_Dirt_01_Grass_01', 'ISO_Tile_Water_Block', 'ISO_Tile_Dirt_01_Grass_01_Green', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_LavaCracks_01'];
+const basicTilesNames = [
+  //'ISO_Tile_Dirt_01_Grass_01_Green',
+  'ISO_Tile_Dirt_01',
+  'ISO_Tile_Water_Block',
+  //'ISO_Tile_Dirt_01_Grass_01',
+  'ISO_Tile_Dirt_01_Grass_01',
+  'ISO_Tile_LavaCracks_01',
+  'ISO_Tile_Snow_02',
+  'ISO_Tile_Brick_Stone_01_04',
+  'ISO_Tile_Stone_02',
+  'ISO_Tile_Dirt_01_GrassPatch_03',
+  'ISO_Tile_Sand_02',
+];
 const specialWaterTilesNames = ['ISO_Tile_Water_Shore_1S_04'];
 let basicTiles = [];
 let specialWaterTiles = [];
@@ -106,18 +121,14 @@ async function drawFoliage() {
   const textures = await loadTexturesFromList(treeImages);
   const tileScale = 0.05;
   const meshPositions = [
-    // empire
     { texture: textures[1], position: [MAP_SIZE * 0.2, 0, MAP_SIZE * 0.45 + 0.7] },
-    // doomed
     { texture: textures[0], position: [MAP_SIZE * 0.2, 0, MAP_SIZE * 0.8] },
     {
       texture: textures[2],
-      // snow
       position: [MAP_SIZE / 3, 0, MAP_SIZE / 2],
     },
     {
       texture: textures[3],
-      // undead
       position: [-MAP_SIZE * 0.3, 0, MAP_SIZE * 0.5],
     },
   ];
@@ -197,6 +208,9 @@ window.addEventListener('keydown', (event) => {
   }
   camera.position.set(deltaX, MAP_SIZE, deltaZ);
   camera.lookAt(deltaX, 0, deltaZ);
+
+  // Save camera position to localStorage
+  localStorage.setItem('cameraPosition', JSON.stringify({ deltaX, deltaZ }));
 });
 
 function createMaterial(texture) {
@@ -216,9 +230,12 @@ function drawTilesOnGrid() {
   const geometry = new TR.PlaneGeometry(tileWidth * tileScale, tileHeight * tileScale);
   const overlayMaterial = createMaterial(overlayTiles[currentOverlayIndex].tileTexture);
   const imperialMaterial = createMaterial(basicTiles[2].tileTexture);
+  const grassPatchMaterial = createMaterial(basicTiles[7].tileTexture);
+  const woodMaterial = createMaterial(basicTiles[8].tileTexture);
   const hellMaterial = createMaterial(basicTiles[5].tileTexture);
+  const undeadMaterial = createMaterial(basicTiles[6].tileTexture);
   const gnomesMaterial = createMaterial(basicTiles[4].tileTexture);
-  const necroMaterial = createMaterial(basicTiles[3].tileTexture);
+  const lavaCrackMaterial = createMaterial(basicTiles[3].tileTexture);
   const neutralMaterial = createMaterial(basicTiles[0].tileTexture);
   const waterMaterial = createMaterial(basicTiles[1].tileTexture);
 
@@ -228,19 +245,19 @@ function drawTilesOnGrid() {
     for (let col = 0; col < MAP_SIZE; col++) {
       let material;
       if (col < MAP_SIZE / 2 && row < MAP_SIZE / 2) {
-        material = imperialMaterial;
+        material = Math.random() > 0.2 ? imperialMaterial : grassPatchMaterial;
       } else if (col >= MAP_SIZE / 2 && row < MAP_SIZE / 2) {
         material = gnomesMaterial;
       } else if (col < MAP_SIZE / 2 && row >= MAP_SIZE / 2) {
-        material = necroMaterial;
+        material = undeadMaterial;
       } else {
-        material = hellMaterial;
+        material = Math.random() > 0.5 ? hellMaterial : lavaCrackMaterial;
       }
 
       const neutralZoneStart = (2 * MAP_SIZE) / 6;
       const neutralZoneEnd = (4 * MAP_SIZE) / 6;
       if (col >= neutralZoneStart && col < neutralZoneEnd && row >= neutralZoneStart && row < neutralZoneEnd) {
-        material = neutralMaterial;
+        material = woodMaterial;
       }
 
       const waterSize = 3;
@@ -285,7 +302,6 @@ let previousMousePosition = { x: 0, y: 0 };
 
 renderer.domElement.addEventListener('mousedown', (event) => {
   if (event.button === 0) {
-    // Left mouse button
     isDragging = true;
     previousMousePosition = { x: event.clientX, y: event.clientY };
   }
@@ -309,6 +325,9 @@ renderer.domElement.addEventListener('mousemove', (event) => {
     camera.lookAt(deltaX, 0, deltaZ);
 
     previousMousePosition = { x: event.clientX, y: event.clientY };
+
+    // Save camera position to localStorage
+    localStorage.setItem('cameraPosition', JSON.stringify({ deltaX, deltaZ }));
   }
 });
 
