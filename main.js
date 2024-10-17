@@ -11,7 +11,7 @@ renderer.outputColorSpace = TR.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const aspectRatio = window.innerWidth / window.innerHeight;
-const cameraSize = MAP_SIZE / 3;
+const cameraSize = MAP_SIZE;
 const camera = new TR.OrthographicCamera(-cameraSize * aspectRatio, cameraSize * aspectRatio, cameraSize, -cameraSize, 0.1, 1000);
 
 let deltaX = 0;
@@ -33,7 +33,7 @@ let overlayTiles = [];
 let currentTileIndex = 0;
 let currentOverlayIndex = 46;
 
-const basicTilesNames = ['ISO_Tile_Dirt_01_Grass_01', 'ISO_Tile_Water_Block', 'ISO_Tile_Dirt_01_Grass_01_Green', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_Lava_02'];
+const basicTilesNames = ['ISO_Tile_Dirt_01_Grass_01', 'ISO_Tile_Water_Block', 'ISO_Tile_Dirt_01_Grass_01_Green', 'ISO_Tile_Brick_Stone_01_04', 'ISO_Tile_Snow_02', 'ISO_Tile_LavaCracks_01'];
 const specialWaterTilesNames = ['ISO_Tile_Water_Shore_1S_04'];
 let basicTiles = [];
 let specialWaterTiles = [];
@@ -45,36 +45,50 @@ const textureImages = {
   Undead_capital: 'assets/castles/undead.png',
 };
 
+const treeImages = {
+  doomed_tree: 'assets/foliage/doomed_tree.png',
+  empire_tree: 'assets/foliage/empire_tree.png',
+  mountains_tree: 'assets/foliage/mountains_tree.png',
+  undead_tree: 'assets/foliage/undead_tree.png',
+};
+
 async function loadTexturesFromList(imageList) {
   const textureLoader = new TR.TextureLoader();
   const promises = Object.keys(imageList).map((key) => {
     return new Promise((resolve) => {
-      textureLoader.load(imageList[key], (texture) => {
-        texture.wrapS = TR.ClampToEdgeWrapping;
-        texture.wrapT = TR.ClampToEdgeWrapping;
-        texture.magFilter = TR.NearestFilter;
-        texture.minFilter = TR.NearestFilter;
-        texture.colorSpace = TR.SRGBColorSpace;
+      textureLoader.load(
+        imageList[key],
+        (texture) => {
+          texture.wrapS = TR.ClampToEdgeWrapping;
+          texture.wrapT = TR.ClampToEdgeWrapping;
+          texture.magFilter = TR.NearestFilter;
+          texture.minFilter = TR.NearestFilter;
+          texture.colorSpace = TR.SRGBColorSpace;
 
-        const img = texture.image;
-        if (img.width && img.height) {
-          resolve({
-            name: key,
-            tileTexture: texture,
-            tileWidth: img.width,
-            tileHeight: img.height,
-          });
-        } else {
-          img.onload = () => {
+          const img = texture.image;
+          if (img.width && img.height) {
             resolve({
               name: key,
               tileTexture: texture,
               tileWidth: img.width,
               tileHeight: img.height,
             });
-          };
+          } else {
+            img.onload = () => {
+              resolve({
+                name: key,
+                tileTexture: texture,
+                tileWidth: img.width,
+                tileHeight: img.height,
+              });
+            };
+          }
+        },
+        undefined,
+        (err) => {
+          console.error(err);
         }
-      });
+      );
     });
   });
   return await Promise.all(promises);
@@ -88,12 +102,43 @@ async function loadAllTiles() {
   specialWaterTiles = specialWaterTilesNames.map((name) => allTiles.find((tile) => tile.name === name));
 }
 
-async function loadBuildingTextures() {
-  return await loadTexturesFromList(textureImages);
+async function drawFoliage() {
+  const textures = await loadTexturesFromList(treeImages);
+  const tileScale = 0.05;
+  const meshPositions = [
+    { texture: textures[1], position: [MAP_SIZE / 4, 0, MAP_SIZE / 4] },
+    { texture: textures[0], position: [MAP_SIZE * 0.2, 0, MAP_SIZE * 0.8] },
+    {
+      texture: textures[2],
+      position: [MAP_SIZE / 3, 0, MAP_SIZE / 2],
+    },
+    {
+      texture: textures[3],
+      position: [-(MAP_SIZE * 3) / 8, 0, (MAP_SIZE * 3) / 8],
+    },
+  ];
+
+  meshPositions.forEach(({ texture, position }) => {
+    const { tileTexture, tileWidth, tileHeight } = texture;
+    const geometry = new TR.PlaneGeometry(tileWidth * tileScale, tileHeight * tileScale);
+    const material = new TR.MeshBasicMaterial({
+      map: tileTexture,
+      transparent: true,
+      side: TR.DoubleSide,
+      alphaTest: 0.5,
+      depthWrite: false,
+      depthTest: false,
+    });
+    const mesh = new TR.Mesh(geometry, material);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(...position);
+    mesh.renderOrder = MAP_SIZE * MAP_SIZE + 10;
+    scene.add(mesh);
+  });
 }
 
 async function drawBuilding() {
-  const textures = await loadBuildingTextures();
+  const textures = await loadTexturesFromList(textureImages);
   const tileScale = (1 / 64 / 2 / 5) * 8;
   const stepFromEdge = 8;
   const capitalSize = 8;
@@ -271,8 +316,9 @@ renderer.domElement.addEventListener('mouseleave', () => {
 
 async function init() {
   await loadAllTiles();
-  await drawBuilding();
   drawTilesOnGrid();
+  await drawBuilding();
+  await drawFoliage();
 }
 
 init();
