@@ -11,7 +11,7 @@ renderer.outputColorSpace = TR.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const aspectRatio = window.innerWidth / window.innerHeight;
-const cameraSize = MAP_SIZE;
+const cameraSize = MAP_SIZE / 3;
 const camera = new TR.OrthographicCamera(-cameraSize * aspectRatio, cameraSize * aspectRatio, cameraSize, -cameraSize, 0.1, 1000);
 
 let deltaX = 0;
@@ -106,15 +106,19 @@ async function drawFoliage() {
   const textures = await loadTexturesFromList(treeImages);
   const tileScale = 0.05;
   const meshPositions = [
-    { texture: textures[1], position: [MAP_SIZE / 4, 0, MAP_SIZE / 4] },
+    // empire
+    { texture: textures[1], position: [MAP_SIZE * 0.2, 0, MAP_SIZE * 0.45 + 0.7] },
+    // doomed
     { texture: textures[0], position: [MAP_SIZE * 0.2, 0, MAP_SIZE * 0.8] },
     {
       texture: textures[2],
+      // snow
       position: [MAP_SIZE / 3, 0, MAP_SIZE / 2],
     },
     {
       texture: textures[3],
-      position: [-(MAP_SIZE * 3) / 8, 0, (MAP_SIZE * 3) / 8],
+      // undead
+      position: [-MAP_SIZE * 0.3, 0, MAP_SIZE * 0.5],
     },
   ];
 
@@ -132,6 +136,8 @@ async function drawFoliage() {
     const mesh = new TR.Mesh(geometry, material);
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.set(...position);
+    const scale = 0.25;
+    mesh.scale.set(scale, scale, scale);
     mesh.renderOrder = MAP_SIZE * MAP_SIZE + 10;
     scene.add(mesh);
   });
