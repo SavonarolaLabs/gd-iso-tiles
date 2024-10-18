@@ -1,0 +1,23 @@
+export const rocks = [
+    "assets/rocks/rocks_split/rock_15.png",
+    "assets/rocks/rocks_split/rock_14.png",
+    "assets/rocks/rocks_split/rock_16.png",
+    "assets/rocks/rocks_split/rock_17.png",
+    "assets/rocks/rocks_split/rock_13.png",
+    "assets/rocks/rocks_split/rock_12.png",
+    "assets/rocks/rocks_split/rock_10.png",
+    "assets/rocks/rocks_split/rock_11.png",
+    "assets/rocks/rocks_split/rock_8.png",
+    "assets/rocks/rocks_split/rock_9.png",
+    "assets/rocks/rocks_split/rock_7.png",
+    "assets/rocks/rocks_split/rock_6.png",
+    "assets/rocks/rocks_split/rock_4.png",
+    "assets/rocks/rocks_split/rock_5.png",
+    "assets/rocks/rocks_split/rock_1.png",
+    "assets/rocks/rocks_split/rock_2.png",
+    "assets/rocks/rocks_split/rock_3.png",
+    "assets/rocks/rocks_split/rock_20.png",
+    "assets/rocks/rocks_split/rock_21.png",
+    "assets/rocks/rocks_split/rock_19.png",
+    "assets/rocks/rocks_split/rock_18.png"
+];

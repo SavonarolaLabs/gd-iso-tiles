@@ -1,5 +1,6 @@
 import * as TR from 'three';
 import tileImages from './tileImports.js';
+import { rocks } from './src/rocks.js';
 
 const MAP_SIZE = 64;
 const MAX_SIDE = MAP_SIZE;
@@ -115,6 +116,41 @@ async function loadAllTiles() {
   overlayTiles = allTiles.filter((tile) => tile.name.startsWith('ISO_Overlay') && !tile.name.includes('Roof'));
   basicTiles = basicTilesNames.map((name) => allTiles.find((tile) => tile.name === name));
   specialWaterTiles = specialWaterTilesNames.map((name) => allTiles.find((tile) => tile.name === name));
+}
+
+async function drawRocks() {
+  const tileScale = 0.07 * 0.6;
+  let img = {};
+  rocks.forEach((rock) => {
+    const a = rock.split('/');
+    const name = a[a.length - 1];
+    img[name.split('.')[0]] = rock;
+  });
+  const textures = await loadTexturesFromList(img);
+  const meshPositions = [
+    { texture: textures[5], position: [MAP_SIZE * 0.2 + 1.1, 0.0, MAP_SIZE / 2 - 0.4] },
+    { texture: textures[5], position: [MAP_SIZE * 0.2, 0.0, MAP_SIZE / 2 - 1.4] },
+  ];
+
+  meshPositions.forEach(({ texture, position }) => {
+    const { tileTexture, tileWidth, tileHeight } = texture;
+    const geometry = new TR.PlaneGeometry(tileWidth * tileScale, tileHeight * tileScale);
+    const material = new TR.MeshBasicMaterial({
+      map: tileTexture,
+      transparent: true,
+      side: TR.DoubleSide,
+      alphaTest: 0.5,
+      depthWrite: false,
+      depthTest: false,
+    });
+    const mesh = new TR.Mesh(geometry, material);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(...position);
+    const scale = 0.25;
+    mesh.scale.set(scale, scale, scale);
+    mesh.renderOrder = MAP_SIZE * MAP_SIZE + 100;
+    scene.add(mesh);
+  });
 }
 
 async function drawFoliage() {
@@ -344,6 +380,7 @@ async function init() {
   drawTilesOnGrid();
   await drawBuilding();
   await drawFoliage();
+  await drawRocks();
 }
 
 init();
