@@ -325,6 +325,7 @@ function drawTilesOnGrid() {
       if (col >= 0 && col < MAP_SIZE) {
         const tileMesh = tileGrid[row][col];
         tileMesh.renderOrder = renderOrder++;
+        tileMesh.name = `${sum}-${row}`;
         scene.add(tileMesh);
         tileMeshes.push(tileMesh);
       }
@@ -336,8 +337,29 @@ function drawTilesOnGrid() {
 let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
 
+renderer.domElement.addEventListener('contextmenu', (event) => {
+  event.preventDefault(); // This prevents the context menu from opening
+});
+
 renderer.domElement.addEventListener('mousedown', (event) => {
   if (event.button === 0) {
+    const mouse = new TR.Vector2();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    const raycaster = new TR.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(scene.children);
+    if (intersects.length > 0) {
+      const clickedObject = intersects[0].object;
+      console.log(intersects.length, clickedObject);
+
+      // Perform right-click action (e.g., open menu, select, etc.)
+    }
+  }
+
+  if (event.button === 2) {
     isDragging = true;
     previousMousePosition = { x: event.clientX, y: event.clientY };
   }
