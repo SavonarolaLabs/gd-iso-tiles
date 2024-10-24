@@ -341,6 +341,20 @@ renderer.domElement.addEventListener('contextmenu', (event) => {
   event.preventDefault(); // This prevents the context menu from opening
 });
 
+const toggleSelection = (mesh) => {
+  if (!mesh.userData.isSelected) {
+    // Backup original material if not already backed up
+    mesh.userData.originalMaterial = mesh.material;
+    // Set a temporary Phong material for visual feedback
+    mesh.material = new TR.MeshPhongMaterial({ color: 0xff0000 }); // Example color
+    mesh.userData.isSelected = true; // Set flag
+  } else {
+    // Restore original material and remove the flag
+    mesh.material = mesh.userData.originalMaterial;
+    delete mesh.userData.isSelected; // Remove flag
+  }
+};
+
 renderer.domElement.addEventListener('mousedown', (event) => {
   if (event.button === 0) {
     const mouse = new TR.Vector2();
@@ -355,7 +369,7 @@ renderer.domElement.addEventListener('mousedown', (event) => {
       console.log(intersects.map((i) => i.object.name));
       const clickedObject = intersects.reduce((a, e) => (e.object.renderOrder > a.object.renderOrder ? e : a), { object: { renderOrder: -1 } }).object;
       console.log(intersects.length, clickedObject);
-
+      toggleSelection(clickedObject);
       // Perform right-click action (e.g., open menu, select, etc.)
     }
   }
