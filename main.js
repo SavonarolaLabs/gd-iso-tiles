@@ -344,9 +344,12 @@ renderer.domElement.addEventListener('contextmenu', (event) => {
 const toggleSelection = (mesh) => {
   if (!mesh.userData.isSelected) {
     // Backup original material if not already backed up
-    mesh.userData.originalMaterial = mesh.material;
-    // Set a temporary Phong material for visual feedback
-    mesh.material = new TR.MeshPhongMaterial({ color: 0xff0000 }); // Example color
+    if (!mesh.userData.originalMaterial) {
+      mesh.userData.originalMaterial = mesh.material.clone(); // Clone original material to back it up
+    }
+    // Modify only the color or other properties, keeping the original material's properties intact
+    mesh.material = mesh.material.clone(); // Clone current material before modifying
+    mesh.material.color.set(0xff0000); // Example color
     mesh.userData.isSelected = true; // Set flag
   } else {
     // Restore original material and remove the flag
@@ -391,8 +394,8 @@ renderer.domElement.addEventListener('mousemove', (event) => {
     deltaX -= deltaMove.x * moveSpeed;
     deltaZ -= deltaMove.y * moveSpeed;
 
-    deltaX = Math.max(Math.min(deltaX, MAX_SIDE), -MAX_SIDE);
-    deltaZ = Math.max(Math.min(deltaZ, MAX_SIDE), -MAX_SIDE);
+    deltaX = Math.max(Math.min(deltaX, MAX_SIDE * 1.2), -MAX_SIDE * 1.2);
+    deltaZ = Math.max(Math.min(deltaZ, MAX_SIDE * 1.2), -MAX_SIDE * 1.2);
 
     camera.position.set(deltaX, MAP_SIZE, deltaZ);
     camera.lookAt(deltaX, 0, deltaZ);
