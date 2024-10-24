@@ -352,7 +352,8 @@ renderer.domElement.addEventListener('mousedown', (event) => {
 
     const intersects = raycaster.intersectObjects(scene.children);
     if (intersects.length > 0) {
-      const clickedObject = intersects[0].object;
+      console.log(intersects.map((i) => i.object.name));
+      const clickedObject = intersects.reduce((a, e) => (e.object.renderOrder > a.object.renderOrder ? e : a), { object: { renderOrder: -1 } }).object;
       console.log(intersects.length, clickedObject);
 
       // Perform right-click action (e.g., open menu, select, etc.)
